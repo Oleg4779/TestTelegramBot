@@ -33,9 +33,9 @@ public class BerryBot extends TelegramLongPollingBot {
                 String command = message.getText().substring(commandEntity.get().getOffset(), commandEntity.get().getLength());
 
                 switch (command) {
-                    case "/set_currency":
+                    case "/set_procedure":
                         execute(SendMessage.builder()
-                                .text("Please, choose Original and Target Currencies")
+                                .text("Please, choose the procedure you want to do.")
                                 .chatId(message.getChatId().toString())
                                 .build());
                         return;
