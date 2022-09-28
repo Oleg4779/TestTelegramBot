@@ -19,10 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class BerryBot extends TelegramLongPollingBot {
 
@@ -42,7 +39,12 @@ public class BerryBot extends TelegramLongPollingBot {
     }
 
     private void handleCallBack(CallbackQuery callbackQuery) {
-
+        Message message = callbackQuery.getMessage();
+        String[] param = callbackQuery.getData().split(":");
+        String action = param[0];
+        Procedure newProcedure = Procedure.valueOf(param[1]);
+        procedureModeService.setProcedure(message.getChatId(), newProcedure);
+//        System.out.println(callbackQuery.getData().toString());
     }
 
     public void handleMessage(Message message) throws TelegramApiException {
@@ -51,33 +53,22 @@ public class BerryBot extends TelegramLongPollingBot {
             Optional<MessageEntity> commandEntity =
                     message.getEntities().stream().filter(e -> "bot_command".equals(e.getType())).findFirst();
             if (commandEntity.isPresent()) {
-                String command = message.getText().substring(commandEntity.get().getOffset(), commandEntity.get().getLength());
+                String command = message
+                        .getText()
+                        .substring(commandEntity.get().getOffset(), commandEntity.get().getLength());
 
                 switch (command) {
                     case "/set_procedure":
                         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-                        List<InlineKeyboardButton> inlineKeyboardRow1 = new ArrayList<>();
-                        List<InlineKeyboardButton> inlineKeyboardRow2 = new ArrayList<>();
-                        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-                        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-                        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-                        InlineKeyboardButton inlineKeyboardButton3 = new InlineKeyboardButton();
-                        InlineKeyboardButton inlineKeyboardButton4 = new InlineKeyboardButton();
-                        inlineKeyboardButton1.setText("Чистка");
-                        inlineKeyboardButton1.setCallbackData("Вы выбрали процедуру \"Чистка\"");
-                        inlineKeyboardRow1.add(inlineKeyboardButton1);
-                        inlineKeyboardButton2.setText("Пилинг");
-                        inlineKeyboardButton2.setCallbackData("Вы выбрали процедуру \"Пилинг\"");
-                        inlineKeyboardRow1.add(inlineKeyboardButton2);
-                        inlineKeyboardButton3.setText("Уходы");
-                        inlineKeyboardButton3.setCallbackData("Вы выбрали процедуру \"Уходы\"");
-                        inlineKeyboardRow2.add(inlineKeyboardButton3);
-                        inlineKeyboardButton4.setText("Релакс уходы");
-                        inlineKeyboardButton4.setCallbackData("Вы выбрали процедуру \"Релакс уходы\"");
-                        inlineKeyboardRow2.add(inlineKeyboardButton4);
-                        buttons.add(inlineKeyboardRow1);
-                        buttons.add(inlineKeyboardRow2);
-                        inlineKeyboardMarkup.setKeyboard(buttons);
+                        Procedure procedure = procedureModeService.getProcedure(message.getChatId());
+                        for(Procedure procedureType : Procedure.values()) {
+                            buttons.add(
+                                    Arrays.asList(
+                                            InlineKeyboardButton.builder()
+                                                    .text(procedureType.getName())
+                                                    .callbackData("Procedure:" + procedure.name())
+                                                    .build()));
+                        }
 
                         execute(SendMessage.builder()
                                 .chatId(message.getChatId().toString())
@@ -92,7 +83,7 @@ public class BerryBot extends TelegramLongPollingBot {
     }
 
 //    private String getProcedureButton(Procedure saved, Procedure current) {
-//        return saved == current ? current.getName() + "✅" : current.getName();
+//        return saved == current ? saved.getName() + "✅" : current.getName();
 //    }
 
     @Override
