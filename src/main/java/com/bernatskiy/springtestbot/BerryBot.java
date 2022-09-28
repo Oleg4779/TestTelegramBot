@@ -61,7 +61,7 @@ public class BerryBot extends TelegramLongPollingBot {
                     case "/set_procedure":
                         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
                         Procedure procedure = procedureModeService.getProcedure(message.getChatId());
-                        for(Procedure procedureType : Procedure.values()) {
+                        for (Procedure procedureType : Procedure.values()) {
                             buttons.add(
                                     Arrays.asList(
                                             InlineKeyboardButton.builder()
@@ -76,9 +76,14 @@ public class BerryBot extends TelegramLongPollingBot {
                                 .replyMarkup(InlineKeyboardMarkup.builder().keyboard(buttons).build())
                                 .build());
 
-                        return;
+                        break;
                 }
             }
+        } else {
+            SendMessage replyToUser = new SendMessage();
+            replyToUser.setChatId(message.getChatId().toString());
+            replyToUser.setText("Command was not recognized");
+            execute(replyToUser);
         }
     }
 
